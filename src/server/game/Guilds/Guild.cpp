@@ -1035,7 +1035,9 @@ Guild::Guild():
     m_id(0),
     m_createdDate(0),
     m_accountsNumber(0),
-    m_bankMoney(0)
+    m_bankMoney(0),
+    m_guildLevel(0),
+    m_guildExp(0)
 {
 }
 
@@ -1062,6 +1064,8 @@ bool Guild::Create(Player* pLeader, std::string_view name)
     m_info = "";
     m_motd = "No message set.";
     m_bankMoney = 0;
+    m_guildLevel = 1;
+    m_guildExp = 0;
     m_createdDate = GameTime::GetGameTime().count();
 
     LOG_DEBUG("guild", "GUILD: creating guild [{}] for leader {} ({})",
@@ -1087,6 +1091,8 @@ bool Guild::Create(Player* pLeader, std::string_view name)
     stmt->SetData(++index, m_emblemInfo.GetBorderColor());
     stmt->SetData(++index, m_emblemInfo.GetBackgroundColor());
     stmt->SetData(++index, m_bankMoney);
+    stmt->SetData(++index, m_guildLevel);
+    stmt->SetData(++index, m_guildExp);
     trans->Append(stmt);
 
     CharacterDatabase.CommitTransaction(trans);
@@ -1263,7 +1269,10 @@ void Guild::HandleQuery(WorldSession* session)
 
     response.Info.RankCount = _GetRanksSize();
 
-    response.Info.GuildName = m_name;
+    if (sWorld->getBoolConfig(CONFIG_GSYSTEM_IN_QUERY_OPCODE))
+        response.Info.GuildName = PrepareGuildNameByIdWithLvl(m_name, m_guildLevel);
+    else
+        response.Info.GuildName = m_name;
 
     session->SendPacket(response.Write());
     LOG_DEBUG("guild", "SMSG_GUILD_QUERY_RESPONSE [{}]", session->GetPlayerInfo());
@@ -1907,8 +1916,10 @@ bool Guild::LoadFromDB(Field* fields)
     m_motd          = fields[9].Get<std::string>();
     m_createdDate   = time_t(fields[10].Get<uint32>());
     m_bankMoney     = fields[11].Get<uint64>();
+    m_guildLevel    = fields[12].Get<uint32>();
+    m_guildExp      = fields[13].Get<uint32>();
 
-    uint8 purchasedTabs = uint8(fields[12].Get<uint64>());
+    uint8 purchasedTabs = uint8(fields[14].Get<uint64>());
     if (purchasedTabs > GUILD_BANK_MAX_TABS)
         purchasedTabs = GUILD_BANK_MAX_TABS;
 
@@ -2124,6 +2135,15 @@ void Guild::BroadcastToGuild(WorldSession* session, bool officerOnly, std::strin
     }
 }
 
+void Guild::BroadcastToGuildNote(std::string const& msg) const
+{
+    for (auto const& [guid, member] : m_members)
+    {
+        if (Player* player = member.FindPlayer())
+            ChatHandler(player->GetSession()).PSendSysMessage("%s", msg);
+    }
+}
+
 void Guild::BroadcastPacketToRank(WorldPacket const* packet, uint8 rankId) const
 {
     for (auto const& [guid, member] : m_members)
@@ -2137,6 +2157,18 @@ void Guild::BroadcastPacket(WorldPacket const* packet) const
     for (auto const& [guid, member] : m_members)
         if (Player* player = member.FindPlayer())
             player->GetSession()->SendPacket(packet);
+}
+
+void Guild::ItemBroadcastToGuild(Player* player, std::string const& msg) const
+{
+    if (player)
+    {
+        WorldPacket data;
+        ChatHandler::BuildChatPacket(data, CHAT_MSG_GUILD, LANG_UNIVERSAL, player, nullptr, msg);
+        for (auto const& [guid, member] : m_members)
+            if (Player* player = member.FindPlayer())
+                player->SendDirectMessage(&data);
+    }
 }
 
 void Guild::MassInviteToEvent(WorldSession* session, uint32 minLevel, uint32 maxLevel, uint32 minRank)
@@ -2169,6 +2201,133 @@ void Guild::MassInviteToEvent(WorldSession* session, uint32 minLevel, uint32 max
     data.put<uint32>(0, count);
 
     session->SendPacket(&data);
+}
+
+// Guild System
+void Player::AddGuildAurasForPlr(uint32 level)
+{
+    GuildSpellAurasContainer const& guildSpellAurasMap = sObjectMgr->GetGuildSpellAurasMap();
+
+    for (GuildSpellAurasContainer::const_iterator itr = guildSpellAurasMap.begin(); itr != guildSpellAurasMap.end(); ++itr)
+    {
+        GuildSpellAuras const* gspellAuras = &itr->second;
+        if (gspellAuras->reqlevel > level)
+            continue;
+
+        CastSpell(this, gspellAuras->spellauraId);
+    }
+}
+
+void Player::RemoveGuildAurasForPlr()
+{
+    GuildSpellAurasContainer const& guildSpellAurasMap = sObjectMgr->GetGuildSpellAurasMap();
+
+    for (GuildSpellAurasContainer::const_iterator itr = guildSpellAurasMap.begin(); itr != guildSpellAurasMap.end(); ++itr)
+    {
+        GuildSpellAuras const* gspellAuras = &itr->second;
+        RemoveAurasDueToSpell(gspellAuras->spellauraId);
+    }
+}
+
+void Guild::UpdateLevelAndExp()
+{
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_GUILD_LEVELANDEXP);
+    stmt->SetData(0, m_guildLevel);
+    stmt->SetData(1, m_guildExp);
+    stmt->SetData(2, m_id);
+    CharacterDatabase.Execute(stmt);
+}
+
+void Guild::CastGuildLevelAuras(uint32 level)
+{
+    GuildSpellAurasContainer const& guildSpellAurasMap = sObjectMgr->GetGuildSpellAurasMap();
+
+    for (GuildSpellAurasContainer::const_iterator itr = guildSpellAurasMap.begin(); itr != guildSpellAurasMap.end(); ++itr)
+    {
+        GuildSpellAuras const* gspellAuras = &itr->second;
+        if (gspellAuras->reqlevel > level)
+            continue;
+
+        for (auto const& [guid, member] : m_members)
+        {
+            if (Player* player = member.FindPlayer())
+                player->CastSpell(player, gspellAuras->spellauraId);
+        }
+    }
+}
+
+void Guild::RemoveHigherGuildLevelAuras(uint32 level)
+{
+    GuildSpellAurasContainer const& guildSpellAurasMap = sObjectMgr->GetGuildSpellAurasMap();
+
+    for (GuildSpellAurasContainer::const_iterator itr = guildSpellAurasMap.begin(); itr != guildSpellAurasMap.end(); ++itr)
+    {
+        GuildSpellAuras const* gspellAuras = &itr->second;
+        if (gspellAuras->reqlevel <= level)
+            continue;
+
+        for (auto const& [guid, member] : m_members)
+        {
+            if (Player* player = member.FindPlayer())
+                player->RemoveAurasDueToSpell(gspellAuras->spellauraId);
+        }
+    }
+}
+
+void Guild::AddGuildExp(uint32 value, Player* player, bool randombonus)
+{
+    uint32 currentExp = GetGuildExperience();
+    uint32 newExp = currentExp + value;
+
+    if (randombonus)
+        newExp += urand(1, 45);
+
+    if (newExp >= 1500)
+    {
+        while (newExp >= 1500)
+        {
+            ++m_guildLevel;
+            sScriptMgr->OnGuildLevelUpEvent(this, player, m_guildLevel);
+            newExp -= 1500;
+        }
+    }
+    m_guildExp = newExp;
+    sScriptMgr->OnGuildExpirienceUpEvent(this, player, value);
+
+    UpdateLevelAndExp();
+}
+
+void Guild::AddGuildLevel(uint32 value, Player* player)
+{
+    uint32 count = value;
+    while (count >= 1)
+    {
+        ++m_guildLevel;
+        sScriptMgr->OnGuildLevelUpEvent(this, player, m_guildLevel);
+        --count;
+    }
+
+    UpdateLevelAndExp();
+}
+
+void Guild::RemoveGuildLevel(uint32 value)
+{
+    uint32 currentLvl = GetGuildLevel();
+    if (value >= currentLvl)
+        SetGuildLevel(1);
+    else
+        m_guildLevel -= value;
+
+    RemoveHigherGuildLevelAuras(m_guildLevel);
+    UpdateLevelAndExp();
+}
+
+std::string Guild::PrepareGuildNameByIdWithLvl(std::string const& guildName, uint32 level)
+{
+    std::ostringstream str;
+    str << guildName << " (" << level << " level)";
+
+    return str.str();
 }
 
 // Members handling

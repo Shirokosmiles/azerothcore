@@ -1441,6 +1441,11 @@ void World::LoadConfigSettings(bool reload)
     // Preload all grids of all non-instanced maps
     _bool_configs[CONFIG_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS] = sConfigMgr->GetOption<bool>("PreloadAllNonInstancedMapGrids", false);
 
+    // GuildSystem script
+    _bool_configs[CONFIG_LOOT_GUILD_ENABLED]         = sConfigMgr->GetOption<bool>("Guild.LootBroadcast.Enabled", false);
+    _bool_configs[CONFIG_GSYSTEM_IN_WHO_LIST]        = sConfigMgr->GetOption<bool>("GSystem.WhoList.Enabled", false);
+    _bool_configs[CONFIG_GSYSTEM_IN_QUERY_OPCODE]    = sConfigMgr->GetOption<bool>("GSystem.QueryList.Enabled", false);
+
     // ICC buff override
     _int_configs[CONFIG_ICC_BUFF_HORDE] = sConfigMgr->GetOption<int32>("ICC.Buff.Horde", 73822);
     _int_configs[CONFIG_ICC_BUFF_ALLIANCE] = sConfigMgr->GetOption<int32>("ICC.Buff.Alliance", 73828);
@@ -1968,6 +1973,9 @@ void World::SetInitialWorldSettings()
 
     LOG_INFO("server.loading", "Loading GameTeleports...");
     sObjectMgr->LoadGameTele();
+
+    LOG_INFO("server.loading", "Loading Guild Spell Auras...");
+    sObjectMgr->LoadGuildSpellAuras();
 
     LOG_INFO("server.loading", "Loading Gossip Menu...");
     sObjectMgr->LoadGossipMenu();

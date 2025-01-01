@@ -693,6 +693,7 @@ public:
     std::string const& GetInfo() const { return m_info; }
 
     bool SetName(std::string_view const& name);
+    std::string PrepareGuildNameByIdWithLvl(std::string const& guildName, uint32 level);
 
     // Handle client commands
     void HandleRoster(WorldSession* session);
@@ -745,10 +746,23 @@ public:
 
     // Broadcasts
     void BroadcastToGuild(WorldSession* session, bool officerOnly, std::string_view msg, uint32 language = LANG_UNIVERSAL) const;
+    void BroadcastToGuildNote(std::string const& msg) const;
     void BroadcastPacketToRank(WorldPacket const* packet, uint8 rankId) const;
     void BroadcastPacket(WorldPacket const* packet) const;
+    void ItemBroadcastToGuild(Player* player, std::string const& msg) const;
 
     void MassInviteToEvent(WorldSession* session, uint32 minLevel, uint32 maxLevel, uint32 minRank);
+
+    void UpdateLevelAndExp();
+    void CastGuildLevelAuras(uint32 level);
+    void RemoveHigherGuildLevelAuras(uint32 level);
+    void SetGuildLevel(uint32 value) { m_guildLevel = value; }
+    void SetGuildExp(uint32 value) { m_guildExp = value; }
+    void AddGuildExp(uint32 value, Player* player, bool randombonus = false);
+    void AddGuildLevel(uint32 value, Player * player);
+    void RemoveGuildLevel(uint32 value = 1);
+    uint32 GetGuildLevel() const { return m_guildLevel; }
+    uint32 GetGuildExperience() const { return m_guildExp; }
 
     template<class Do>
     void BroadcastWorker(Do& _do, Player* except = nullptr)
@@ -793,6 +807,9 @@ protected:
     EmblemInfo m_emblemInfo;
     uint32 m_accountsNumber;
     uint64 m_bankMoney;
+
+    uint32 m_guildLevel;
+    uint32 m_guildExp;
 
     std::vector<RankInfo> m_ranks;
     std::unordered_map<uint32, Member> m_members;

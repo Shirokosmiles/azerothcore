@@ -2585,6 +2585,11 @@ public:
     uint32 m_pendingSpectatorInviteInstanceId;
     GuidSet m_receivedSpectatorResetFor;
 
+    // GuildSystem
+    void AddGuildAurasForPlr(uint32 level);
+    void RemoveGuildAurasForPlr();
+    //End of Custom Systems
+
     // Dancing Rune weapon
     void setRuneWeaponGUID(ObjectGuid guid) { m_drwGUID = guid; };
     ObjectGuid getRuneWeaponGUID() { return m_drwGUID; };

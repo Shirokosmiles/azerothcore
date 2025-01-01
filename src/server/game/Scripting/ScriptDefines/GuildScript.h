@@ -35,6 +35,11 @@ enum GuildHook
     GUILDHOOK_ON_ITEM_MOVE,
     GUILDHOOK_ON_EVENT,
     GUILDHOOK_ON_BANK_EVENT,
+    GUILDHOOK_LEVEL_UP_EVENT,
+    GUILDHOOK_EXPIRIENCE_EVENT,
+    GUILDHOOK_ARENA_WON_MEMBER_EVENT,
+    GUILDHOOK_BATTLEGROUND_WON_MEMBER_EVENT,
+    GUILDHOOK_LFG_COMPLETE_EVENT,
     GUILDHOOK_CAN_GUILD_SEND_BANK_LIST,
     GUILDHOOK_END
 };
@@ -77,6 +82,16 @@ public:
     virtual void OnEvent(Guild* /*guild*/, uint8 /*eventType*/, ObjectGuid::LowType /*playerGuid1*/, ObjectGuid::LowType /*playerGuid2*/, uint8 /*newRank*/) { }
 
     virtual void OnBankEvent(Guild* /*guild*/, uint8 /*eventType*/, uint8 /*tabId*/, ObjectGuid::LowType /*playerGuid*/, uint32 /*itemOrMoney*/, uint16 /*itemStackCount*/, uint8 /*destTabId*/) { }
+
+    virtual void OnLevelUp(Guild* /*guild*/, Player* /*player*/, uint32 /*receivedLevel*/) { }
+
+    virtual void OnExpReceived(Guild* /*guild*/, Player* /*player*/, uint32 /*receivedExp*/) { }
+
+    virtual void OnArenaWon(Guild* /*guild*/, Player* /*player*/) { }
+
+    virtual void OnBattlegroundWon(Guild* /*guild*/, Player* /*player*/) { }
+
+    virtual void OnLFGComplete(Guild* /*guild*/, Player* /*player*/) { }
 
     [[nodiscard]] virtual bool CanGuildSendBankList(Guild const* /*guild*/, WorldSession* /*session*/, uint8 /*tabId*/, bool /*sendAllSlots*/) { return true; }
 };

@@ -2298,6 +2298,8 @@ namespace lfg
             LOG_DEBUG("lfg", "LFGMgr::FinishDungeon: [{}] done dungeon {}, {} previously done.", player->GetGUID().ToString(), GetDungeon(gguid), done ? " " : " not");
             LfgPlayerRewardData data = LfgPlayerRewardData(dungeon->Entry(), GetDungeon(gguid, false), done, quest);
             player->GetSession()->SendLfgPlayerReward(data);
+        if (player->GetGuild())
+            sScriptMgr->OnGuildLFGCompleteEvent(player->GetGuild(), player);
         }
     }
 

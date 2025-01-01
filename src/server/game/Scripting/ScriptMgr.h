@@ -493,6 +493,11 @@ public: /* GuildScript */
                          bool isDestBank, uint8 destContainer, uint8 destSlotId);
     void OnGuildEvent(Guild* guild, uint8 eventType, ObjectGuid::LowType playerGuid1, ObjectGuid::LowType playerGuid2, uint8 newRank);
     void OnGuildBankEvent(Guild* guild, uint8 eventType, uint8 tabId, ObjectGuid::LowType playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);
+    void OnGuildLevelUpEvent(Guild* guild, Player* player, uint32 receivedLevel);
+    void OnGuildExpirienceUpEvent(Guild* guild, Player* player, uint32 receivedExp);
+    void OnGuildArenaWonMemberEvent(Guild* guild, Player* player);
+    void OnGuildBattlegrroundWonMemberEvent(Guild* guild, Player* player);
+    void OnGuildLFGCompleteEvent(Guild* guild, Player* player);
     bool CanGuildSendBankList(Guild const* guild, WorldSession* session, uint8 tabId, bool sendAllSlots);
 
 public: /* GroupScript */

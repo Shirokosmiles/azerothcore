@@ -74,6 +74,31 @@ void ScriptMgr::OnGuildBankEvent(Guild* guild, uint8 eventType, uint8 tabId, Obj
     CALL_ENABLED_HOOKS(GuildScript, GUILDHOOK_ON_BANK_EVENT, script->OnBankEvent(guild, eventType, tabId, playerGuid, itemOrMoney, itemStackCount, destTabId));
 }
 
+void ScriptMgr::OnGuildLevelUpEvent(Guild* guild, Player* player, uint32 receivedLevel)
+{
+    CALL_ENABLED_HOOKS(GuildScript, GUILDHOOK_LEVEL_UP_EVENT, script->OnLevelUp(guild, player, receivedLevel));
+}
+
+void ScriptMgr::OnGuildExpirienceUpEvent(Guild* guild, Player* player, uint32 receivedExp)
+{
+    CALL_ENABLED_HOOKS(GuildScript, GUILDHOOK_EXPIRIENCE_EVENT, script->OnExpReceived(guild, player, receivedExp));
+}
+
+void ScriptMgr::OnGuildArenaWonMemberEvent(Guild* guild, Player* player)
+{
+    CALL_ENABLED_HOOKS(GuildScript, GUILDHOOK_ARENA_WON_MEMBER_EVENT, script->OnArenaWon(guild, player));
+}
+
+void ScriptMgr::OnGuildBattlegrroundWonMemberEvent(Guild* guild, Player* player)
+{
+    CALL_ENABLED_HOOKS(GuildScript, GUILDHOOK_BATTLEGROUND_WON_MEMBER_EVENT, script->OnBattlegroundWon(guild, player));
+}
+
+void ScriptMgr::OnGuildLFGCompleteEvent(Guild* guild, Player* player)
+{
+    CALL_ENABLED_HOOKS(GuildScript, GUILDHOOK_LFG_COMPLETE_EVENT, script->OnLFGComplete(guild, player));
+}
+
 bool ScriptMgr::CanGuildSendBankList(Guild const* guild, WorldSession* session, uint8 tabId, bool sendAllSlots)
 {
     CALL_ENABLED_BOOLEAN_HOOKS(GuildScript, GUILDHOOK_CAN_GUILD_SEND_BANK_LIST, !script->CanGuildSendBankList(guild, session, tabId, sendAllSlots));

@@ -375,7 +375,8 @@ void Arena::EndBattleground(TeamId winnerTeamId)
                         }
 
                         winnerArenaTeam->MemberWon(player, loserMatchmakerRating, winnerMatchmakerChange);
-                        
+                    if (player->GetGuild())
+                        sScriptMgr->OnGuildArenaWonMemberEvent(player->GetGuild(), player);
                     }
                 }
                 else
