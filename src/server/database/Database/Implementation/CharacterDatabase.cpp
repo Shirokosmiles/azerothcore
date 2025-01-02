@@ -619,7 +619,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_DELETE_INSTANCE_SAVED_DATA, "DELETE FROM instance_saved_go_state_data WHERE id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SANITIZE_INSTANCE_SAVED_DATA, "DELETE FROM instance_saved_go_state_data WHERE id NOT IN (SELECT instance.id FROM instance)", CONNECTION_ASYNC);
     
-    // Guild Level, Expirience
+    // Guild Level, Experience
     PrepareStatement(CHAR_UPD_GUILD_LEVELANDEXP, "UPDATE guild SET GuildLevel = ?, GuildExperience = ? WHERE guildid = ?", CONNECTION_ASYNC);
 }
 

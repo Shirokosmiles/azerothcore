@@ -308,6 +308,22 @@ void Player::Update(uint32 p_time)
 
     sScriptMgr->OnPlayerUpdate(this, p_time);
 
+    if (m_needToUpdFields && m_updFieldTimer > 0)
+    {
+        if (p_time >= m_updFieldTimer)
+        {
+            m_needToUpdFields = false;
+            m_updFieldTimer = 0;
+
+            SetInGuild(m_updGId);
+            SetRank(m_updGRank);
+
+            ClearUpdValues();
+        }
+        else
+            m_updFieldTimer -= p_time;
+    }
+
     if (IsAlive())
     {
         m_regenTimer += p_time;

@@ -296,7 +296,14 @@ Player::Player(WorldSession* session): Unit(true), m_mover(this)
 
     /////////////////// DeathMatch /////////////////
 
-    m_deathmatch            = false;        
+    m_deathmatch            = false;  
+
+    /////////////////// Guild System /////////////////////  
+
+    m_needToUpdFields = false;
+    m_updGId = 0;
+    m_updGRank = 0;
+    m_updFieldTimer = 0;
 
     /////////////////// Instance System /////////////////////
 

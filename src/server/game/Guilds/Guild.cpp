@@ -2229,6 +2229,14 @@ void Player::RemoveGuildAurasForPlr()
     }
 }
 
+void Player::UpdateGuildFields(uint32 guildId, uint8 rank)
+{
+    m_needToUpdFields = true;
+    m_updFieldTimer = 200;
+    m_updGId = guildId;
+    m_updGRank = rank;
+}
+
 void Guild::UpdateLevelAndExp()
 {
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_GUILD_LEVELANDEXP);
@@ -2252,6 +2260,24 @@ void Guild::CastGuildLevelAuras(uint32 level)
         {
             if (Player* player = member.FindPlayer())
                 player->CastSpell(player, gspellAuras->spellauraId);
+        }
+    }
+}
+
+void Guild::UpdateQueryStateForPlayers()
+{
+    for (auto itr = m_members.begin(); itr != m_members.end(); ++itr)
+    {
+        if (Player* player = itr->second->FindConnectedPlayer())
+        {
+            if (player->IsInWorld())
+            {
+                HandleQuery(player->GetSession());
+                uint8 temprank = player->GetRank();
+                player->SetInGuild(0);
+                player->SetRank(0);
+                player->UpdateGuildFields(GetId(), temprank);
+            }
         }
     }
 }

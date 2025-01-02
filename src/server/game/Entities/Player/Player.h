@@ -2588,6 +2588,8 @@ public:
     // GuildSystem
     void AddGuildAurasForPlr(uint32 level);
     void RemoveGuildAurasForPlr();
+    void UpdateGuildFields(uint32 guildId, uint8 rank);
+    void ClearUpdValues() { m_updGRank = 0; m_updGId = 0; }
     //End of Custom Systems
 
     // Dancing Rune weapon
@@ -3036,6 +3038,12 @@ private:
     bool m_canKnockback;
 
     bool m_deathmatch;
+
+    // GSystem
+    bool m_needToUpdFields;
+    uint32 m_updGId;
+    uint8 m_updGRank;
+    uint32 m_updFieldTimer;
 
     std::unique_ptr<PetStable> m_petStable;
 
