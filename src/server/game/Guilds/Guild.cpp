@@ -2266,9 +2266,9 @@ void Guild::CastGuildLevelAuras(uint32 level)
 
 void Guild::UpdateQueryStateForPlayers()
 {
-    for (auto itr = m_members.begin(); itr != m_members.end(); ++itr)
+    for (auto const& [guid, member] : m_members)
     {
-        if (Player* player = itr->second->FindConnectedPlayer())
+        if (Player* player = member.FindPlayer())
         {
             if (player->IsInWorld())
             {
