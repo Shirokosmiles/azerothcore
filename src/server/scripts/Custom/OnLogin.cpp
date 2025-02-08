@@ -135,7 +135,7 @@ public:
                 player->DestroyItemCount(2516, 200, true); // стреллы номер 2
                 player->DestroyItemCount(2101, 4, true); // сумка для стрел
                 player->DestroyItemCount(2102, 1, true); // сумка для стрел номер 2
-                player->AddItem(52021, 100000); // пули
+                player->AddItem(52021, 100); // пули
             }
             break;
         }
@@ -143,9 +143,9 @@ public:
 
     void OnFirstLogin(Player* player) override
     {
-        /*player->GetReputationMgr().ModifyReputation(sFactionStore.LookupEntry(1156), 42999);
-        DeleteItem_OnLogin(player);
-        if (!player->HasSpell(33388))
+        //player->GetReputationMgr().ModifyReputation(sFactionStore.LookupEntry(1156), 42999);
+        //DeleteItem_OnLogin(player);
+        /*if (!player->HasSpell(33388))
             player->learnSpell(33388);
         if (!player->HasSpell(33391))
             player->learnSpell(33391);
